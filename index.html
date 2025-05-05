@@ -154,49 +154,52 @@ body {
     }
   </style>
 <script>
-    document.getElementById("quizForm").addEventListener("submit", async function (e) {
-      e.preventDefault();
-      let score = 0;
-      const total = 5;
-      const responses = {};
+    window.addEventListener("DOMContentLoaded", function () {
+      document.getElementById("quizForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        let score = 0;
+        const total = 5;
+        const responses = {};
   
-      for (let i = 1; i <= total; i++) {
-        const selected = document.querySelector(`input[name='q${i}']:checked`);
-        if (selected) {
-          responses[`q${i}`] = selected.nextSibling.textContent.trim();
-          if (selected.value === "1") score++;
-        } else {
-          responses[`q${i}`] = "No answer";
+        for (let i = 1; i <= total; i++) {
+          const selected = document.querySelector(`input[name='q${i}']:checked`);
+          if (selected) {
+            responses[`q${i}`] = selected.nextSibling.textContent.trim();
+            if (selected.value === "1") score++;
+          } else {
+            responses[`q${i}`] = "No answer";
+          }
         }
-      }
   
-      responses.q6 = document.querySelector('input[name="q6"]:checked')?.value || 'N/A';
-      responses.q7 = document.querySelector('textarea[name="q7"]').value;
-      responses.q8 = document.querySelector('textarea[name="q8"]').value;
-      responses.score = score;
-      responses.timestamp = new Date();
+        responses.q6 = document.querySelector('input[name="q6"]:checked')?.value || 'N/A';
+        responses.q7 = document.querySelector('textarea[name="q7"]').value;
+        responses.q8 = document.querySelector('textarea[name="q8"]').value;
+        responses.score = score;
+        responses.timestamp = new Date();
   
-      try {
-        await fetch("https://us-central1-cyperform-aab33.cloudfunctions.net/submitQuiz", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(responses),
-        });
-        const popup = document.getElementById("popup");
-        const overlay = document.getElementById("overlay");
-        popup.innerHTML = `<strong>You scored ${score} out of ${total}.</strong><br><br>${score >= 4 ? '✅ Great job!' : '📘 Keep learning and stay safe online!'}<br><br>🗂️ Your feedback has been saved.`;
-        popup.classList.add("show");
-        overlay.classList.add("show");
-      } catch (error) {
-        alert("Failed to save your response. Please try again.");
-      }
-    });
+        try {
+          await fetch("https://us-central1-cyperform-aab33.cloudfunctions.net/submitQuiz", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(responses),
+          });
+          const popup = document.getElementById("popup");
+          const overlay = document.getElementById("overlay");
+          popup.innerHTML = `<strong>You scored ${score} out of ${total}.</strong><br><br>${score >= 4 ? '✅ Great job!' : '📘 Keep learning and stay safe online!'}<br><br>🗂️ Your feedback has been saved.`;
+          popup.classList.add("show");
+          overlay.classList.add("show");
+        } catch (error) {
+          alert("Failed to save your response. Please try again.");
+        }
+      });
   
-    document.getElementById("overlay").addEventListener("click", () => {
-      document.getElementById("popup").classList.remove("show");
-      document.getElementById("overlay").classList.remove("show");
+      document.getElementById("overlay").addEventListener("click", () => {
+        document.getElementById("popup").classList.remove("show");
+        document.getElementById("overlay").classList.remove("show");
+      });
     });
   </script>
+  
   <div class="overlay" id="overlay"></div>
   <div class="popup" id="popup"></div>
  <head>
