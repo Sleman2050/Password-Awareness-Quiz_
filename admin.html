@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📊 Campaign Responses Dashboard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #c3cfe2 0%, #f5f7fa 100%);
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: linear-gradient(to right, #667eea, #764ba2);
+      padding: 20px 0;
+      color: white;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2em;
+    }
+    main {
+      padding: 40px 5vw;
+    }
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    .stat-item {
+      flex: 1;
+      text-align: center;
+      color: #333;
+    }
+    .stat-item strong {
+      display: block;
+      font-size: 1.5em;
+      margin-bottom: 4px;
+      color: #764ba2;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 0 12px rgba(0,0,0,0.05);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 16px 20px;
+      border-bottom: 1px solid #eee;
+      font-size: 15px;
+      text-align: left;
+    }
+    th {
+      background: #667eea;
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    tr:hover {
+      background-color: #f1f5ff;
+    }
+    .tag {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 12px;
+      color: white;
+    }
+    .low { background-color: #e57373; }
+    .mid { background-color: #ffb74d; }
+    .high { background-color: #81c784; }
+    .footer-note {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 0.9em;
+      color: #555;
+    }
+    .back-link {
+      display: block;
+      margin: 20px auto;
+      text-align: center;
+      font-weight: bold;
+      text-decoration: none;
+      color: #444;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📊 Password Awareness – Responses Dashboard</h1>
+  </header>
+  <main>
+    <a href="index.html" class="back-link">← Back to Quiz</a>
+    <div class="stats">
+      <div class="stat-item">
+        <strong id="totalCount">0</strong>
+        Total Responses
+      </div>
+      <div class="stat-item">
+        <strong id="avgScore">0</strong>
+        Average Score
+      </div>
+      <div class="stat-item">
+        <strong id="highScores">0</strong>
+        High Scores (4+)
+      </div>
+    </div>
+
+    <table id="responsesTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Score</th>
+          <th>Timestamp</th>
+          <th>Rating</th>
+          <th>What They Learned</th>
+          <th>Suggestions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="footer-note">Real-time data loaded securely from Firebase Firestore</div>
+  </main>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", function () {
+      fetch("https://us-central1-cyperform-aab33.cloudfunctions.net/fetchResponses")
+        .then(res => res.json())
+        .then(data => {
+          const tableBody = document.querySelector("#responsesTable tbody");
+          const totalCount = document.getElementById("totalCount");
+          const avgScore = document.getElementById("avgScore");
+          const highScores = document.getElementById("highScores");
+
+          let totalResponses = 0;
+          let totalScore = 0;
+          let highScoreCount = 0;
+          let rowNumber = 1;
+
+          data.forEach(entry => {
+            totalResponses++;
+            totalScore += entry.score || 0;
+            if (entry.score >= 4) highScoreCount++;
+
+            const scoreClass = entry.score >= 4 ? 'high' : entry.score >= 2 ? 'mid' : 'low';
+
+            let timestamp = 'N/A';
+            try {
+              if (entry.timestamp && entry.timestamp._seconds) {
+                timestamp = new Date(entry.timestamp._seconds * 1000).toLocaleString();
+              }
+            } catch (e) {
+              timestamp = 'Invalid';
+            }
+
+            const row = `
+              <tr>
+                <td>${rowNumber++}</td>
+                <td><span class="tag ${scoreClass}">${entry.score}</span></td>
+                <td>${timestamp}</td>
+                <td>${entry.q6 || 'N/A'}</td>
+                <td>${entry.q7 || ''}</td>
+                <td>${entry.q8 || ''}</td>
+              </tr>
+            `;
+            tableBody.insertAdjacentHTML("beforeend", row);
+          });
+
+          totalCount.textContent = totalResponses;
+          avgScore.textContent = (totalResponses > 0 ? (totalScore / totalResponses).toFixed(2) : '0');
+          highScores.textContent = highScoreCount;
+        })
+        .catch(() => {
+          document.querySelector(".footer-note").textContent = "⚠️ Failed to load data.";
+        });
+    });
+  </script>
+</body>
+</html>

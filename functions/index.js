@@ -23,3 +23,18 @@ exports.submitQuiz = functions.https.onRequest((req, res) => {
     }
   });
 });
+
+exports.fetchResponses = functions.https.onRequest((req, res) => {
+    cors(req, res, async () => {
+      try {
+        const snapshot = await db.collection("responses").get();
+        const results = snapshot.docs.map(doc => doc.data());
+        res.set("Access-Control-Allow-Origin", "*");
+        return res.status(200).json(results);
+      } catch (error) {
+        console.error("❌ Error fetching responses:", error);
+        return res.status(500).send("Internal Server Error");
+      }
+    });
+  });
+  
